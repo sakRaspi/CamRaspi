@@ -48,13 +48,78 @@ Created symlink '/etc/systemd/system/rpcbind.socket' → '/dev/null'.
 port 111 closed
 
 Step 15:
-  "tests": [
-    {"src": "YOUR-LOGIN@example.com",
-     "accept": ["tag:camera:443", "tag:camera:22"],
-     "deny": ["tag:camera:80", "tag:camera:8080"]},
-    // The camera must not be able to open anything on your own devices.
-    {"src": "tag:camera",
-     "deny": ["YOUR-LOGIN@example.com:22", "YOUR-LOGIN@example.com:443",
-              "YOUR-LOGIN@example.com:445", "YOUR-LOGIN@example.com:3389"]},
-    {"src": "tag:camera", "proto": "icmp", "deny": ["YOUR-LOGIN@example.com:0"]}
-  ]
+ysak@ysak:~/surveillance $ tailscale status
+100.91.247.39  cam01            cam01.tail1c1671.ts.net  linux    -                                                        
+100.85.224.6   desktop-nkvn22o  liang787878@             windows  active; direct 192.168.0.26:41641, tx 1079148 rx 141884  
+100.94.18.52   poco-f6          liang787878@             android  offline, last seen 15m ago  
+
+ysak@ysak:~/surveillance $ ping -c 3 192.168.0.26
+PING 192.168.0.26 (192.168.0.26) 56(84) bytes of data.
+
+--- 192.168.0.26 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2052ms
+
+Step 16:
+ysak@ysak:~/surveillance $ top -b -n 3 -d 5 -p "$(pgrep -d, -x tailscaled),$(pgrep -d, -f 'app.main|app.web_main')"
+top - 20:47:54 up  6:49,  7 users,  load average: 0.42, 0.52, 0.55
+Tasks:   3 total,   0 running,   3 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  7.0 us,  2.3 sy,  0.0 ni, 90.7 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st 
+MiB Mem :   3789.8 total,    188.6 free,   1425.6 used,   2379.7 buff/cache     
+MiB Swap:   2048.0 total,   2048.0 free,      0.0 used.   2364.1 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+  12919 root      20   0 1420916  52660  23064 S   9.1   1.4   0:32.65 tailsca+
+  13162 ysak      20   0 2493940 192704 128156 S   9.1   5.0   5:25.07 python3
+  13194 ysak      20   0  601300  77288  13632 S   0.0   2.0   0:18.82 python3
+
+top - 20:47:59 up  6:49,  7 users,  load average: 0.39, 0.51, 0.55
+Tasks:   3 total,   0 running,   3 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  3.8 us,  2.0 sy,  0.0 ni, 94.0 id,  0.1 wa,  0.0 hi,  0.1 si,  0.0 st 
+MiB Mem :   3789.8 total,    191.2 free,   1422.8 used,   2379.9 buff/cache     
+MiB Swap:   2048.0 total,   2048.0 free,      0.0 used.   2366.9 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+  13162 ysak      20   0 2493940 192704 128156 S  11.0   5.0   5:25.62 python3
+  12919 root      20   0 1420916  53064  23064 S   3.0   1.4   0:32.80 tailsca+
+  13194 ysak      20   0  601300  77288  13632 S   0.6   2.0   0:18.85 python3
+
+top - 20:48:04 up  6:49,  7 users,  load average: 0.36, 0.50, 0.55
+Tasks:   3 total,   0 running,   3 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  4.2 us,  3.1 sy,  0.0 ni, 92.4 id,  0.1 wa,  0.0 hi,  0.3 si,  0.0 st 
+MiB Mem :   3789.8 total,    192.5 free,   1420.8 used,   2380.6 buff/cache     
+MiB Swap:   2048.0 total,   2048.0 free,      0.0 used.   2369.0 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+  13162 ysak      20   0 2493940 192708 128156 S  19.8   5.0   5:26.61 python3
+  12919 root      20   0 1420916  53628  23064 S   4.6   1.4   0:33.03 tailsca+
+  13194 ysak      20   0  601300  77288  13632 S   0.6   2.0   0:18.88 python3
+
+  Step 17:
+  ysak@ysak:~/surveillance $ python3 ~/surveillance/tools/phase12_tailscale_check.py
+Tailscale
+  [PASS] Tailscale state: Running (version 1.102.4)
+         this Pi in the tailnet: cam01.tail1c1671.ts.net  100.91.247.39 fd7a:115c:a1e0::5536:f728
+  [PASS] MagicDNS on
+  [PASS] device tags: tag:camera
+  [PASS] device key does not expire
+  [PASS] HTTPS certificates enabled
+tailscale serve
+  [PASS] https://cam01.tail1c1671.ts.net -> http://127.0.0.1:8080
+  [PASS] Funnel is off: nothing is shared outside the tailnet
+Web interface
+  [PASS] web.https_hostname = cam01.tail1c1671.ts.net
+Listening ports
+  [PASS] web interface port 8080 listens on this Pi only (127.0.0.1)
+  [WARN] reachable from the home network: 0.0.0.0:22: SSH, restricted to the tailnet in Phase 14
+         tailnet only : 100.91.247.39:443
+         tailnet only : 100.91.247.39:55890
+  [WARN] reachable from the home network: :::22: SSH, restricted to the tailnet in Phase 14
+         tailnet only : fd7a:115c:a1e0::5536:f728:443
+         tailnet only : fd7a:115c:a1e0::5536:f728:40880
+End-to-end HTTPS through the tailnet
+  [PASS] HTTPS certificate valid for cam01.tail1c1671.ts.net (issued by Let's Encrypt, renews automatically, 89 days left)
+  [PASS] https://cam01.tail1c1671.ts.net/login answers 200 through tailscale serve
+  [PASS] browsers are told to always use HTTPS for this name (HSTS)
+  [PASS] https://cam01.tail1c1671.ts.net/api/status without logging in answers 401 (expected 401)
+
+RESULT: TAILNET ACCESS OK  (13 pass, 2 warn, 0 fail)
