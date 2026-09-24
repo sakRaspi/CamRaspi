@@ -195,4 +195,91 @@ Processing triggers for man-db (2.13.1-1) ...
   The list of kept packages can't be calculated in dry-run mode.
 Log of real runs: /var/log/unattended-upgrades/unattended-upgrades.log
 
+Step 6:
+ysak@ysak:~/surveillance $ sudo python3 /opt/surveillance/tools/phase14_security_audit.py
+sudo cctv-tool phase12_tailscale_check
+SSH server
+  [FAIL] passwordauthentication yes (should be no)
+  [PASS] kbdinteractiveauthentication no
+  [FAIL] permitrootlogin without-password (should be no)
+  [PASS] pubkeyauthentication yes
+  [PASS] permitemptypasswords no
+  [FAIL] x11forwarding yes (should be no)
+  [FAIL] authenticationmethods any (should be publickey)
+  [WARN] allowtcpforwarding yes
+  [WARN] maxauthtries 6
+  [WARN] allowusers (anyone)
+  [PASS] Tailscale SSH off (OpenSSH with keys is used)
+Firewall
+  [PASS] surveillance-firewall: active, on at boot
+  [PASS] incoming connections are dropped unless allowed
+Listening ports (what the network could reach)
+  [PASS] tcp :::22 (sshd): only through the tailnet (firewall)
+  [PASS] tcp 0.0.0.0:22 (sshd): only through the tailnet (firewall)
+  [PASS] tcp 100.91.247.39:443 (tailscaled): only through the tailnet (firewall)
+  [PASS] tcp 100.91.247.39:55890 (tailscaled): blocked by the firewall (tailnet address)
+  [PASS] tcp fd7a:115c:a1e0::5536:f728:40880 (tailscaled): blocked by the firewall (tailnet address)
+  [PASS] tcp fd7a:115c:a1e0::5536:f728:443 (tailscaled): only through the tailnet (firewall)
+  [PASS] udp *:36020 (avahi-daemon): blocked by the firewall
+  [PASS] udp *:41641 (tailscaled): Tailscale's encrypted traffic
+  [PASS] udp *:5353 (avahi-daemon): blocked by the firewall
+  [PASS] udp 0.0.0.0:41641 (tailscaled): Tailscale's encrypted traffic
+  [PASS] udp 0.0.0.0:48021 (avahi-daemon): blocked by the firewall
+  [PASS] udp 0.0.0.0:5353 (avahi-daemon): blocked by the firewall
+  [PASS] udp fe80::57a4:72e0:d20d:ca66:546 (NetworkManager): blocked by the firewall
+sudo
+  [PASS] sudo always asks for the password
+  [PASS] members of the sudo group: ysak
+Updates
+  [PASS] automatic security updates on
+  [PASS] apt-daily-upgrade.timer enabled
+         last update run: 2026-09-24 22:43:48,772 INFO The list of kept packages can't be calculated in dry-run mode.
+Camera services
+  [PASS] surveillance-recorder: active, sandbox exposure 1.3 (0 best, 10 none)
+  [PASS] surveillance-web: active, sandbox exposure 1.4 (0 best, 10 none)
+  [PASS] surveillance-health: active, sandbox exposure 1.0 (0 best, 10 none)
+  [PASS] /etc/polkit-1/rules.d/50-surveillance.rules: owned by root, not writable by others
+File permissions
+  [PASS] /opt/surveillance: owned by root and read-only to the services
+  [PASS] /etc/surveillance: not readable by other users
+  [PASS] /var/lib/surveillance: not readable by other users
+  [PASS] /var/log/surveillance: not readable by other users
+  [PASS] /usr/local/sbin/cctv-tool: root-owned, not writable by others
+  [PASS] /etc/systemd/system/surveillance-recorder.service: root-owned, not writable by others
+  [PASS] /etc/systemd/system/surveillance-health.service: root-owned, not writable by others
+  [PASS] /etc/systemd/system/surveillance-web.service: root-owned, not writable by others
+  [PASS] /etc/systemd/system/surveillance-firewall.service: root-owned, not writable by others
+Accounts
+  [PASS] accounts that can log in: root, ysak
+  [PASS] root has no usable password
+  [PASS] service user cctv: shell /usr/sbin/nologin
+
+RESULT: PROBLEMS FOUND  (39 pass, 3 warn, 4 fail)
+Tailscale
+  [PASS] Tailscale state: Running (version 1.102.4)
+         this Pi in the tailnet: cam01.tail1c1671.ts.net  100.91.247.39 fd7a:115c:a1e0::5536:f728
+  [PASS] MagicDNS on
+  [PASS] device tags: tag:camera
+  [PASS] device key does not expire
+  [PASS] HTTPS certificates enabled
+tailscale serve
+  [PASS] https://cam01.tail1c1671.ts.net -> http://127.0.0.1:8080
+  [PASS] Funnel is off: nothing is shared outside the tailnet
+Web interface
+  [PASS] web.https_hostname = cam01.tail1c1671.ts.net
+Listening ports
+  [PASS] web interface port 8080 listens on this Pi only (127.0.0.1)
+  [PASS] 0.0.0.0:22: the firewall blocks it from the home network (open inside the tailnet)
+         tailnet only : 100.91.247.39:443
+         tailnet only : 100.91.247.39:55890
+  [PASS] :::22: the firewall blocks it from the home network (open inside the tailnet)
+         tailnet only : fd7a:115c:a1e0::5536:f728:443
+         tailnet only : fd7a:115c:a1e0::5536:f728:40880
+End-to-end HTTPS through the tailnet
+  [PASS] HTTPS certificate valid for cam01.tail1c1671.ts.net (issued by Let's Encrypt, renews automatically, 89 days left)
+  [PASS] https://cam01.tail1c1671.ts.net/login answers 200 through tailscale serve
+  [PASS] browsers are told to always use HTTPS for this name (HSTS)
+  [PASS] https://cam01.tail1c1671.ts.net/api/status without logging in answers 401 (expected 401)
+
+RESULT: TAILNET ACCESS OK  (15 pass, 0 warn, 0 fail)
 
