@@ -138,3 +138,61 @@ Emergency off (keyboard and screen on the Pi): sudo systemctl disable --now surv
 
 Test-NetConnection : command not found in my Powershell
 
+Step 5:
+ysak@ysak:~/surveillance $ sudo bash ~/surveillance/deploy/harden.sh updates
+
+== Installing unattended-upgrades
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following additional packages will be installed:
+  python3-distro-info
+Suggested packages:
+  bsd-mailx default-mta | mail-transport-agent needrestart powermgmt-base
+The following NEW packages will be installed:
+  python3-distro-info unattended-upgrades
+0 upgraded, 2 newly installed, 0 to remove and 58 not upgraded.
+Need to get 74.6 kB of archives.
+After this operation, 368 kB of additional disk space will be used.
+Get:1 http://deb.debian.org/debian trixie/main arm64 python3-distro-info all 1.13 [7,736 B]
+Get:2 http://deb.debian.org/debian trixie/main arm64 unattended-upgrades all 2.12 [66.9 kB]
+Fetched 74.6 kB in 0s (332 kB/s)          
+Preconfiguring packages ...
+Selecting previously unselected package python3-distro-info.
+(Reading database ... 128603 files and directories currently installed.)
+Preparing to unpack .../python3-distro-info_1.13_all.deb ...
+Unpacking python3-distro-info (1.13) ...
+Selecting previously unselected package unattended-upgrades.
+Preparing to unpack .../unattended-upgrades_2.12_all.deb ...
+Unpacking unattended-upgrades (2.12) ...
+Setting up python3-distro-info (1.13) ...
+Setting up unattended-upgrades (2.12) ...
+Creating config file /etc/apt/apt.conf.d/20auto-upgrades with new version
+Creating config file /etc/apt/apt.conf.d/50unattended-upgrades with new version
+Created symlink '/etc/systemd/system/multi-user.target.wants/unattended-upgrades.service' → '/usr/lib/systemd/system/unattended-upgrades.service'.
+Synchronizing state of unattended-upgrades.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable unattended-upgrades
+Processing triggers for man-db (2.13.1-1) ...
+
+== Configuration
+  APT::Periodic::Update-Package-Lists "1";
+  APT::Periodic::Unattended-Upgrade "1";
+  Unattended-Upgrade::Origins-Pattern:: "origin=Debian,codename=${distro_codename},label=Debian";
+  Unattended-Upgrade::Origins-Pattern:: "origin=Debian,codename=${distro_codename},label=Debian-Security";
+  Unattended-Upgrade::Origins-Pattern:: "origin=Debian,codename=${distro_codename}-security,label=Debian-Security";
+  NEXT                        LEFT LAST                        PASSED UNIT                    ACTIVATES
+  Fri 2026-09-25 06:23:36 +08   7h Thu 2026-09-24 14:09:24 +08      - apt-daily-upgrade.timer apt-daily-upgrade.service
+  Fri 2026-09-25 12:44:54 +08  14h Thu 2026-09-24 20:40:21 +08      - apt-daily.timer         apt-daily.service
+  
+  2 timers listed.
+  Pass --all to see loaded but inactive timers, too.
+
+== Trial run (installs nothing)
+  Writing dpkg log to /var/log/unattended-upgrades/unattended-upgrades-dpkg.log
+  /usr/bin/dpkg --status-fd 10 --no-triggers --unpack --auto-deconfigure /var/cache/apt/archives/xdg-dbus-proxy_0.1.6-1+deb13u3_arm64.deb 
+  /usr/bin/dpkg --status-fd 10 --configure --pending 
+  All upgrades installed
+  The list of kept packages can't be calculated in dry-run mode.
+Log of real runs: /var/log/unattended-upgrades/unattended-upgrades.log
+
+
